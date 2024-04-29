@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>İleri java Final - HR220035 Hasan Hüseyin Kumaşoğlu</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <script>
+
+        function oyuncaklarinListele() {
+            var tabloBaslik = "<table style=\"width:100%\"><tr>" +
+                "<th>ID <input type=\"text\" class=\"aramaInput\" onkeyup=\"aramaYap()\"></th>" +
+                "<th>Alış Tarihi <input type=\"text\" class=\"aramaInput\" onkeyup=\"aramaYap()\"></th>" +
+                "<th>Alış Fiyatı <input type=\"text\" class=\"aramaInput\" onkeyup=\"aramaYap()\"></th>" +
+                "<th>Oyuncak Adı <input type=\"text\" class=\"aramaInput\" onkeyup=\"aramaYap()\"></th>" +
+                "<th>Türü <input type=\"text\" class=\"aramaInput\" onkeyup=\"aramaYap()\"></th>" +
+                "<th>DESİ <input type=\"text\" class=\"aramaInput\" onkeyup=\"aramaYap()\"></th>" +
+                "<th>Oyuncak hakkında not <input type=\"text\" class=\"aramaInput\" onkeyup=\"aramaYap()\"></th>" +
+                "</tr></table>";
+
+            var request = new XMLHttpRequest();
+            request.open("GET", "http://localhost:8080/listele", true)
+            request.onreadystatechange = function () {
+                if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
+                    var oyuncaklar = JSON.parse(request.responseText);
+                    var tabloBaslik = "<table style=\"width:100%\"><tr><th>ID</th><th>Alış Tarihi</th><th>Alış Fiyatı</th><th>Oyuncak Adı</th><th>Türü</th><th>DESİ</th><th>Oyuncak hakkında not</th></tr>";
+                    var tabloVeri = "";
+                    for (var i = 0; i < oyuncaklar.length; i++) {
+                        tabloVeri += "<tr>" +
+                            "<td>" + oyuncaklar[i].id + "</td>" +
+                            "<td>" + oyuncaklar[i].alisTarihi + "</td>" +
+                            "<td>" + oyuncaklar[i].alisFiyati + "</td>" +
+                            "<td>" + oyuncaklar[i].ad + "</td>" +
+                            "<td>" + oyuncaklar[i].tur + "</td>" +
+                            "<td>" + oyuncaklar[i].desi + "</td>" +
+                            "<td>" + oyuncaklar[i].notlar + "</td>" +
+                            "</tr>";
+                    }
+                    var tabloBitis = "</table>";
+                    document.getElementById("oyuncakListesi").innerHTML = tabloBaslik + tabloVeri + tabloBitis;
+
+                    var aramaInput = "<br><label for=\"aramaInput\">Arama:</label><input type=\"text\" id=\"aramaInput\" onkeyup=\"aramaYap()\">";
+                    document.getElementById("oyuncakListesi").insertAdjacentHTML('afterbegin', aramaInput);
+                }
+            };
+            request.send();
+        }
+
+
+        function aramaYap() {
+            var input, filter, table, tr, td, i, txtValue;
+            input = document.getElementById("aramaInput");
+            filter = input.value.toUpperCase();
+            table = document.getElementsByTagName("table")[0];
+            tr = table.getElementsByTagName("tr");
+
+            for (i = 0; i < tr.length; i++) {
+                var shouldDisplay = false;
+                for (var j = 0; j < tr[i].cells.length; j++) {
+                    td = tr[i].cells[j];
+                    if (td) {
+                        txtValue = td.textContent || td.innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            shouldDisplay = true;
+                            break;
+                        }
+                    }
+                }
+                tr[i].style.display = shouldDisplay ? "" : "none";
+            }
+        }
+
+
+
+        function oyuncakEkle() {
+
+            const alisTarihi = document.getElementById("alisTarihi").value;
+            const alisFiyati = document.getElementById("alisFiyati").value;
+            const ad = document.getElementById("ad").value;
+            const tur = document.getElementById("tur").value;
+            const desi = document.getElementById("desi").value;
+            const notlar = document.getElementById("notlar").value;
+
+            if (alisTarihi.trim() === "" || alisFiyati.trim() === "" || ad.trim() === "" || tur.trim() === "" || desi.trim() === "" || notlar.trim() === "") {
+                alert("Lütfen tüm alanları doldurunuz.");
+                return;
+            }
+
+            const parametre = {
+                alisTarihi: alisTarihi,
+                alisFiyati: alisFiyati,
+                ad: ad,
+                tur: tur,
+                desi: desi,
+                notlar: notlar
+            };
+
+            var request = new XMLHttpRequest();
+            request.open("POST", "http://localhost:8080/ekle", true);
+            request.setRequestHeader("Content-Type", "application/json");
+            request.onreadystatechange = function () {
+                if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
+                    document.getElementById("oyuncakListesi").innerHTML = request.responseText;
+                    alert(request.responseText);
+                    oyuncaklarinListele();
+                }
+            };
+            request.send(JSON.stringify(parametre));
+        }
+
+        function oyuncakSil() {
+
+            var request = new XMLHttpRequest();
+            request.open("DELETE", "http://localhost:8080/sil?ID=" + document.getElementById("ID").value, true)
+            request.onreadystatechange = function () {
+
+                if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
+
+                    alert(request.responseText);
+                    oyuncaklarinListele();
+
+                }
+
+            };
+            request.send();
+
+        }
+
+        function oyuncakGuncelle() {
+            const alisTarihi = document.getElementById("GalisTarihi").value;
+            const alisFiyati = document.getElementById("GalisFiayti").value;
+            const ad = document.getElementById("Gad").value;
+            const tur = document.getElementById("Gtur").value;
+            const desi = document.getElementById("Gdesi").value;
+            const notlar = document.getElementById("Gnotlar").value;
+
+            // Kontrol: Değerler boş mu?
+            if (!alisTarihi || !alisFiyati || !ad || !tur || !desi || !notlar) {
+                alert("Lütfen tüm alanları doldurun.");
+                return;
+            }
+
+            const parametre = {
+                alisTarihi: alisTarihi,
+                alisFiyati: alisFiyati,
+                ad: ad,
+                tur: tur,
+                desi: desi,
+                notlar: notlar
+            };
+
+            var request = new XMLHttpRequest();
+            request.open("PUT", "http://localhost:8080/guncelle/" + document.getElementById("GID").value, true)
+            request.setRequestHeader("Content-Type", "application/json");
+            request.onreadystatechange = function () {
+                if (request.readyState === XMLHttpRequest.DONE) {
+                    if (request.status === 200) {
+                        document.getElementById("oyuncakListesi").innerHTML = request.responseText;
+                        alert("Oyuncak Güncellendi");
+                        oyuncaklarinListele();
+                    } else {
+                        alert("Güncelleme başarısız. Hata kodu: " + request.status);
+                    }
+                }
+            };
+            request.send(JSON.stringify(parametre));
+        }
+
+
+        function oyuncakGetir() {
+
+            var oyuncakID = document.getElementById("oyuncakGetirme").value;
+
+            if (!oyuncakID) {
+                alert("Oyuncak ID boş olamaz!");
+                return;
+            } else if (oyuncakID <= 0) {
+                alert("Oyuncak ID 0 veya negatif olamaz!");
+                return;
+            }
+
+            var request = new XMLHttpRequest();
+            request.open("GET", "http://localhost:8080/getir?ID=" + document.getElementById("oyuncakGetirme").value, true)
+
+            request.onreadystatechange = function () {
+
+                if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
+
+                    var oyuncak = JSON.parse(request.responseText);
+
+                    var tabloBaslik = "<table style=\"width:100%\"><tr><th>ID</th><th>Alış Tarihi</th><th>Alış Fiyatı</th><th>Oyuncak Adı</th><th>Türü</th><th>DESİ</th><th>Oyuncak hakkında not</th></tr>";
+                    var tabloVeri = "<tr>" +
+                        "<td>" + oyuncak.id + "</td>" +
+                        "<td>" + oyuncak.alisTarihi + "</td>" +
+                        "<td>" + oyuncak.alisFiyati + "</td>" +
+                        "<td>" + oyuncak.ad + "</td>" +
+                        "<td>" + oyuncak.tur + "</td>" +
+                        "<td>" + oyuncak.desi + "</td>" +
+                        "<td>" + oyuncak.notlar + "</td>" +
+                        "</tr>";
+                    var tabloBitis = "</table>";
+
+                    oyuncakGostermeAlani.innerHTML = request.responseText;
+
+                    document.getElementById("oyuncakGostermeAlani").innerHTML = tabloBaslik + tabloVeri + tabloBitis;
+
+
+                    alert("İstenilen ID'li kullanici getirildi");
+
+                }
+
+            };
+            request.send();
+
+        }
+
+
+    </script>
+
+</head>
+<body>
+
+<br>
+<br>
+
+<div class="anabas2">
+
+    <h1>İleri Java Final - HR220035 Hasan Hüseyin Kumaşoğlu</h1>
+
+
+</div>
+
+<br>
+
+<h1 class="bas">Oyuncak Listesi</h1>
+
+<button type="button" onclick="oyuncaklarinListele()"> Oyuncakları Listele</button>
+
+<div id="oyuncakListesi">
+
+    <div id="tabloBaslikContainer"></div>
+
+</div>
+
+<br>
+<br>
+
+<div class="anabas">
+
+    <div id="oyuncakEkle" class="oyuncakEkle">
+
+        <label for="alisTarihi">AlışTarihi: </label>
+        <input type="date" id="alisTarihi" name="alisTarihi" placeholder="22.01.2024">
+
+        <br>
+
+        <label for="alisFiyati">Alış Fiyatı: </label>
+        <input type="text" id="alisFiyati" name="alisFiyati" placeholder=120.58>
+
+        <br>
+
+        <label for="ad">Oyuncak adı: </label>
+        <input type="text" id="ad" name="ad" placeholder="F1">
+
+        <br>
+
+        <label for="tur">Oyuncak Türü: </label>
+        <input type="text" id="tur" name="tur" placeholder="Araba">
+
+        <br>
+
+        <label for="desi">Desi: </label>
+        <input type="text" id="desi" name="desi" placeholder=12>
+
+        <br>
+
+        <label for="notlar">Not: </label>
+        <input type="text" id="notlar" name="notlar" placeholder="F1 arabası">
+
+        <br>
+
+        <button type="submit" onclick="oyuncakEkle()">Oyuncağı Ekle</button>
+
+
+    </div>
+
+    <br>
+
+    <label for="oyuncakGetirme">Getirilecek olan oyuncak ID: </label>
+    <input type="text" id="oyuncakGetirme" name="oyuncakGetirme">
+
+    <button type="submit" onclick="oyuncakGetir()">Getir</button>
+
+    <div id="oyuncakGostermeAlani"></div>
+
+    <br>
+
+    <div id="kisisil" class="kisisil">
+
+        <label for="ID">Silinecek oyuncak ID: </label>
+        <input type="text" id="ID" name="ID">
+
+        <button type="submit" onclick="oyuncakSil()">SİL</button>
+
+    </div>
+
+    <br>
+
+    <div id="oyuncakGuncelle" class="oyuncakGuncelle">
+
+        <label for="GID">ID: </label>
+        <input type="text" id="GID" name="ID">
+
+        <br>
+
+        <label for="GalisTarihi">AlışTarihi: </label>
+        <input type="date" id="GalisTarihi" name="GalisTarihi">
+
+        <br>
+
+        <label for="GalisFiayti">Alış Fiyatı: </label>
+        <input type="text" id="GalisFiayti" name="GalisFiayti">
+
+        <br>
+
+        <label for="Gad">Oyuncak adı: </label>
+        <input type="text" id="Gad" name="Gad">
+
+        <br>
+
+        <label for="Gtur">Oyuncak Türü: </label>
+        <input type="text" id="Gtur" name="Gtur">
+
+        <br>
+
+        <label for="Gdesi">Desi: </label>
+        <input type="text" id="Gdesi" name="Gdesi">
+
+        <br>
+
+        <label for="Gnotlar">Not: </label>
+        <input type="text" id="Gnotlar" name="Gnotlar">
+
+        <br>
+
+        <button type="submit" onclick="oyuncakGuncelle()">Oyuncağı Güncelle</button>
+
+
+    </div>
+
+</div>
+
+</body>
+</html>
